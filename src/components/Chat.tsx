@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Send } from 'lucide-react';
 import Message, { TypingIndicator } from './Message';
-import { Message as MessageType, sendChatMessage, sendChatMessageWithPdf } from '@/utils/api';
+import { Message as MessageType, sendChatMessage, sendChatMessageWithPdf, isMedicalReport } from '@/utils/api';
 import { PdfInfo } from '@/utils/pdf';
 import { cn } from '@/lib/utils';
 
@@ -17,8 +17,18 @@ const Chat: React.FC<ChatProps> = ({ apiKey, activePdf }) => {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isMedical, setIsMedical] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Determine if PDF is a medical report whenever activePdf changes
+  useEffect(() => {
+    if (activePdf && activePdf.text) {
+      setIsMedical(isMedicalReport(activePdf.text));
+    } else {
+      setIsMedical(false);
+    }
+  }, [activePdf]);
 
   // Scroll to bottom whenever messages change
   useEffect(() => {
@@ -86,11 +96,33 @@ const Chat: React.FC<ChatProps> = ({ apiKey, activePdf }) => {
         <div className="w-8 h-8 rounded-full bg-primary animate-pulse-subtle" />
       </div>
       <h3 className="text-xl font-medium mb-2">Ask me anything</h3>
-      <p className="text-muted-foreground max-w-md">
-        {activePdf && activePdf.text 
-          ? `I'll answer questions based on the PDF "${activePdf.name}"`
-          : "Upload a PDF or just start chatting for general assistance"}
-      </p>
+      {isMedical ? (
+        <>
+          <p className="text-emerald-600 font-medium mb-2">
+            🩺 Medical Report Analysis Activated 🩺
+          </p>
+          <p className="text-muted-foreground max-w-md">
+            I've detected a blood test report in "{activePdf?.name}". Ask me to analyze your results or provide specific health insights.
+          </p>
+          <div className="mt-4 text-xs max-w-md border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/20 p-3 rounded-md">
+            <p className="text-emerald-800 dark:text-emerald-300">
+              Try questions like:
+            </p>
+            <ul className="list-disc pl-5 text-muted-foreground mt-1 space-y-1">
+              <li>Analyze my blood test results</li>
+              <li>Are any of my values outside the normal range?</li>
+              <li>What does my cholesterol level mean?</li>
+              <li>Calculate my health score</li>
+            </ul>
+          </div>
+        </>
+      ) : (
+        <p className="text-muted-foreground max-w-md">
+          {activePdf && activePdf.text 
+            ? `I'll answer questions based on the PDF "${activePdf.name}"`
+            : "Upload a PDF or just start chatting for general assistance"}
+        </p>
+      )}
     </div>
   );
 
@@ -125,7 +157,7 @@ const Chat: React.FC<ChatProps> = ({ apiKey, activePdf }) => {
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
+            placeholder={isMedical ? "Ask about your blood test results..." : "Type your message..."}
             className="flex-1"
             disabled={isLoading}
           />

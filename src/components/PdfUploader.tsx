@@ -17,6 +17,7 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isMedicalReport, setIsMedicalReport] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (file: File) => {
@@ -38,8 +39,25 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({
     
     try {
       const pdfInfo = await extractTextFromPdf(file);
+      
+      // Check if PDF might be a medical report
+      const medicalKeywords = [
+        "blood test", "laboratory", "lab results", "clinical", "reference range", 
+        "cholesterol", "glucose", "hemoglobin"
+      ];
+      
+      const isMedical = medicalKeywords.some(keyword => 
+        pdfInfo.text.toLowerCase().includes(keyword)
+      );
+      
+      setIsMedicalReport(isMedical);
       onPdfProcessed(pdfInfo);
-      toast.success(`"${file.name}" processed successfully`);
+      
+      if (isMedical) {
+        toast.success(`Medical report "${file.name}" processed successfully. Ask questions about your blood test results!`);
+      } else {
+        toast.success(`"${file.name}" processed successfully`);
+      }
     } catch (error) {
       console.error('Error processing PDF:', error);
       toast.error('Failed to process PDF');
@@ -71,6 +89,7 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({
   };
 
   const handleClearPdf = () => {
+    setIsMedicalReport(false);
     onPdfProcessed({
       id: '',
       name: '',
@@ -101,6 +120,7 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({
                 <h3 className="text-sm font-medium truncate">{activePdf.name}</h3>
                 <p className="text-xs text-muted-foreground">
                   {formatFileSize(activePdf.size)} • {activePdf.numPages} {activePdf.numPages === 1 ? 'page' : 'pages'}
+                  {isMedicalReport && <span className="ml-1 text-emerald-500">• Medical Report</span>}
                 </p>
               </div>
             </div>
@@ -139,6 +159,9 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({
             </p>
             <p className="text-xs text-muted-foreground text-center">
               Drag and drop or click to browse
+            </p>
+            <p className="text-xs text-emerald-600 mt-2 text-center">
+              ✨ Now with Blood Test Report Analysis! ✨
             </p>
           </div>
         </div>

@@ -53,20 +53,79 @@ export const sendChatMessage = async (
   }
 };
 
+// Medical AI Doctor system prompt
+const medicalSystemPrompt = `You are an advanced AI Doctor designed to analyze blood test reports in PDF format. Your analysis should be dynamic and tailored to each unique test—whether it includes standard markers like glucose and cholesterol or more specialized panels such as hormone levels. Your responses must be generated in real time based on the data provided, without relying on pre-made templates. Additionally, your health score calculations must correspond with previous blood test reports uploaded by the user.
+
+Detailed Instructions:
+1. Data Extraction 📄🔍
+   - Extract all relevant biomarkers from the uploaded PDF report
+   - Ensure you correctly parse values, even if they are presented in different formats
+   - Detect any reference ranges provided in the report
+
+2. Dynamic Analysis ⚡🧠
+   - Compare each extracted value with its corresponding normal range
+   - Generate a dynamic interpretation explaining any deviations
+   - Consider interactions between various markers
+
+3. Personalized Health Score 📊🏆
+   - Compute a personalized health score based on the current blood test values
+   - Integrate historical data from previous reports to track trends over time
+   - Highlight changes over time and identify any emerging patterns
+
+4. Contextual Recommendations 💡👍
+   - Provide clear, actionable recommendations based on your analysis
+   - Always include a disclaimer: "This analysis is for informational purposes only and does not constitute professional medical advice. Please consult a healthcare provider for an accurate diagnosis."
+
+5. Interactive and Adaptive Response 💬🔄
+   - When users ask follow-up questions, refer directly to the specific data points
+   - Update your analysis in real time if new data is provided
+
+6. Communication and Tone 🗣️❤️
+   - Use clear, concise, and empathetic language
+   - Empower users by providing insights that help them understand their health status
+
+7. Error Handling and Guidance 🚫➡️
+   - If key data can't be extracted, notify the user with friendly guidance
+   - If data is incomplete or ambiguous, ask for further clarification`;
+
+// Function to detect if a PDF is likely a medical/blood test report
+export const isMedicalReport = (text: string): boolean => {
+  const medicalKeywords = [
+    "blood test", "laboratory", "lab results", "clinical", "reference range", 
+    "cholesterol", "glucose", "hemoglobin", "wbc", "rbc", "platelet", 
+    "triglycerides", "hdl", "ldl", "tsh", "t3", "t4", "hba1c", "creatinine",
+    "bilirubin", "alt", "ast", "ggt", "albumin", "protein", "sodium", "potassium",
+    "chloride", "calcium", "magnesium", "phosphorus", "uric acid", "vitamin"
+  ];
+  
+  const lowercaseText = text.toLowerCase();
+  const keywordMatches = medicalKeywords.filter(keyword => 
+    lowercaseText.includes(keyword)
+  );
+  
+  // If at least 3 medical keywords are found, consider it a medical report
+  return keywordMatches.length >= 3;
+};
+
 // Function to send chat message with PDF context
 export const sendChatMessageWithPdf = async (
   messages: Message[],
   pdfText: string,
   apiKey: string
 ): Promise<ChatResponse> => {
-  // Create a system message with PDF context
+  // Determine if the PDF is likely a medical/blood test report
+  const isMedical = isMedicalReport(pdfText);
+  
+  // Create a system message with appropriate context based on PDF content
   const systemMessage: Message = {
     role: "system",
-    content: `You are a helpful assistant that answers questions based on the following PDF content: 
-    
-    ${pdfText}
-    
-    Answer questions based on this content. If the information isn't in the document, say so politely.`
+    content: isMedical 
+      ? medicalSystemPrompt + `\n\nHere is the PDF content to analyze:\n\n${pdfText}`
+      : `You are a helpful assistant that answers questions based on the following PDF content: 
+      
+      ${pdfText}
+      
+      Answer questions based on this content. If the information isn't in the document, say so politely.`
   };
 
   // Add system message at the beginning
