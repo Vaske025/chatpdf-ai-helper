@@ -50,10 +50,6 @@ const Chat: React.FC<ChatProps> = ({ apiKey, activePdf }) => {
     e?.preventDefault();
     
     if (!input.trim()) return;
-    if (!apiKey) {
-      alert('Please enter your API key');
-      return;
-    }
     
     const userMessage: MessageType = {
       role: 'user',

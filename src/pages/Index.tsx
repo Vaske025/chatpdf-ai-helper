@@ -7,30 +7,17 @@ import { PdfInfo } from '@/utils/pdf';
 import { toast } from 'sonner';
 
 const Index: React.FC = () => {
-  const [apiKey, setApiKey] = useState<string>('');
+  // Hardcode the API key to prevent frontend changes
+  const apiKey = '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';
   const [activePdf, setActivePdf] = useState<PdfInfo | null>(null);
-  const [showKeyInput, setShowKeyInput] = useState<boolean>(true);
 
-  // Initialize from provided key in default user message
   useEffect(() => {
-    const defaultKey = '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';
-    if (defaultKey) {
-      setApiKey(defaultKey);
-      setShowKeyInput(false);
-      toast.success('API key loaded successfully');
-    }
+    // Notify that the API key is loaded
+    toast.success('API key loaded successfully');
   }, []);
 
   const handlePdfProcessed = (pdfInfo: PdfInfo) => {
     setActivePdf(pdfInfo.id ? pdfInfo : null);
-  };
-
-  const handleSaveApiKey = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (apiKey.trim()) {
-      setShowKeyInput(false);
-      toast.success('API key saved');
-    }
   };
 
   return (
@@ -48,44 +35,13 @@ const Index: React.FC = () => {
             <PdfUploader onPdfProcessed={handlePdfProcessed} activePdf={activePdf} />
           </div>
           
-          {showKeyInput ? (
-            <div className="mt-auto">
-              <form onSubmit={handleSaveApiKey} className="space-y-2">
-                <div className="space-y-1">
-                  <label htmlFor="apiKey" className="text-sm font-medium">
-                    OpenRouter API Key
-                  </label>
-                  <input
-                    id="apiKey"
-                    type="password"
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    placeholder="sk-or-v1-..."
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="w-full bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-primary/90"
-                >
-                  Save API Key
-                </button>
-              </form>
+          <div className="mt-auto">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">API Status</span>
+              <span className="text-xs text-emerald-500 font-medium">Connected</span>
             </div>
-          ) : (
-            <div className="mt-auto">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">API Key</span>
-                <button
-                  onClick={() => setShowKeyInput(true)}
-                  className="text-xs text-primary hover:underline"
-                >
-                  Change
-                </button>
-              </div>
-              <div className="text-sm mt-1">•••••••••••••••••••••</div>
-            </div>
-          )}
+            <div className="text-sm mt-1 text-muted-foreground">Using OpenRouter API</div>
+          </div>
         </div>
         
         {/* Chat area */}
