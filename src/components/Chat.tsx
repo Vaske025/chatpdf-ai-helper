@@ -18,17 +18,56 @@ const Chat: React.FC<ChatProps> = ({ apiKey, activePdf }) => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isMedical, setIsMedical] = useState(false);
+  const [autoAnalysisPerformed, setAutoAnalysisPerformed] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Determine if PDF is a medical report whenever activePdf changes
   useEffect(() => {
     if (activePdf && activePdf.text) {
-      setIsMedical(isMedicalReport(activePdf.text));
+      const medical = isMedicalReport(activePdf.text);
+      setIsMedical(medical);
+      
+      // Reset auto-analysis flag when a new PDF is loaded
+      setAutoAnalysisPerformed(false);
     } else {
       setIsMedical(false);
+      setAutoAnalysisPerformed(false);
     }
   }, [activePdf]);
+
+  // Auto-analyze medical reports
+  useEffect(() => {
+    if (isMedical && activePdf && activePdf.text && !autoAnalysisPerformed && messages.length === 0) {
+      const performAutoAnalysis = async () => {
+        setIsLoading(true);
+        setAutoAnalysisPerformed(true);
+        
+        try {
+          const userMessage: MessageType = {
+            role: 'user',
+            content: 'Analyze this blood test report in detail'
+          };
+          
+          setMessages(prev => [...prev, userMessage]);
+          
+          const response = await sendChatMessageWithPdf(
+            [userMessage],
+            activePdf.text,
+            apiKey
+          );
+          
+          setMessages(prev => [...prev, response.message]);
+        } catch (error) {
+          console.error('Error auto-analyzing medical report:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      performAutoAnalysis();
+    }
+  }, [isMedical, activePdf, autoAnalysisPerformed, messages.length, apiKey]);
 
   // Scroll to bottom whenever messages change
   useEffect(() => {

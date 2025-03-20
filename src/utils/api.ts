@@ -110,23 +110,26 @@ Detailed Instructions:
    - If key data can't be extracted, notify the user with friendly guidance
    - If data is incomplete or ambiguous, ask for further clarification`;
 
-// Function to detect if a PDF is likely a medical/blood test report
-export const isMedicalReport = (text: string): boolean => {
-  const medicalKeywords = [
-    "blood test", "laboratory", "lab results", "clinical", "reference range", 
-    "cholesterol", "glucose", "hemoglobin", "wbc", "rbc", "platelet", 
-    "triglycerides", "hdl", "ldl", "tsh", "t3", "t4", "hba1c", "creatinine",
-    "bilirubin", "alt", "ast", "ggt", "albumin", "protein", "sodium", "potassium",
-    "chloride", "calcium", "magnesium", "phosphorus", "uric acid", "vitamin"
-  ];
-  
-  const lowercaseText = text.toLowerCase();
-  const keywordMatches = medicalKeywords.filter(keyword => 
-    lowercaseText.includes(keyword)
-  );
-  
-  // If at least 3 medical keywords are found, consider it a medical report
-  return keywordMatches.length >= 3;
+// Export utility for medical report detection
+export const isMedical = {
+  // Function to detect if a PDF is likely a medical/blood test report
+  isMedicalReport: (text: string): boolean => {
+    const medicalKeywords = [
+      "blood test", "laboratory", "lab results", "clinical", "reference range", 
+      "cholesterol", "glucose", "hemoglobin", "wbc", "rbc", "platelet", 
+      "triglycerides", "hdl", "ldl", "tsh", "t3", "t4", "hba1c", "creatinine",
+      "bilirubin", "alt", "ast", "ggt", "albumin", "protein", "sodium", "potassium",
+      "chloride", "calcium", "magnesium", "phosphorus", "uric acid", "vitamin"
+    ];
+    
+    const lowercaseText = text.toLowerCase();
+    const keywordMatches = medicalKeywords.filter(keyword => 
+      lowercaseText.includes(keyword)
+    );
+    
+    // If at least 3 medical keywords are found, consider it a medical report
+    return keywordMatches.length >= 3;
+  }
 };
 
 // Function to send chat message with PDF context
@@ -155,3 +158,6 @@ export const sendChatMessageWithPdf = async (
   
   return sendChatMessage(messagesWithContext, apiKey);
 };
+
+// Export the isMedicalReport function directly as well
+export { isMedical as isMedicalReport };

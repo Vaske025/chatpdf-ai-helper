@@ -1,5 +1,4 @@
-
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
@@ -40,21 +39,15 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({
     try {
       const pdfInfo = await extractTextFromPdf(file);
       
-      // Check if PDF might be a medical report
-      const medicalKeywords = [
-        "blood test", "laboratory", "lab results", "clinical", "reference range", 
-        "cholesterol", "glucose", "hemoglobin"
-      ];
+      // Check if PDF might be a medical report using the utility function
+      const { isMedical } = await import('@/utils/api');
+      const isMedicalDoc = isMedical.isMedicalReport(pdfInfo.text);
       
-      const isMedical = medicalKeywords.some(keyword => 
-        pdfInfo.text.toLowerCase().includes(keyword)
-      );
-      
-      setIsMedicalReport(isMedical);
+      setIsMedicalReport(isMedicalDoc);
       onPdfProcessed(pdfInfo);
       
-      if (isMedical) {
-        toast.success(`Medical report "${file.name}" processed successfully. Ask questions about your blood test results!`);
+      if (isMedicalDoc) {
+        toast.success(`Medical report "${file.name}" processed successfully. Analysis will begin automatically.`);
       } else {
         toast.success(`"${file.name}" processed successfully`);
       }
