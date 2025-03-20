@@ -1,9 +1,11 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { extractTextFromPdf, formatFileSize, type PdfInfo } from '@/utils/pdf';
 import { FileText, Upload, X } from 'lucide-react';
+import { isMedicalReport } from '@/utils/api';
 
 interface PdfUploaderProps {
   onPdfProcessed: (pdfInfo: PdfInfo) => void;
@@ -40,8 +42,7 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({
       const pdfInfo = await extractTextFromPdf(file);
       
       // Check if PDF might be a medical report using the utility function
-      const { isMedical } = await import('@/utils/api');
-      const isMedicalDoc = isMedical.isMedicalReport(pdfInfo.text);
+      const isMedicalDoc = isMedicalReport(pdfInfo.text);
       
       setIsMedicalReport(isMedicalDoc);
       onPdfProcessed(pdfInfo);
