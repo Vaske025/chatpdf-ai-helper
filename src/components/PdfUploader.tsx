@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { extractTextFromPdf, formatFileSize, type PdfInfo } from '@/utils/pdf';
-import { FilePdf, Upload, X, FileText } from 'lucide-react';
+import { FileText, Upload, X } from 'lucide-react';
 
 interface PdfUploaderProps {
   onPdfProcessed: (pdfInfo: PdfInfo) => void;
@@ -95,7 +95,7 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center text-primary">
-                <FilePdf size={20} />
+                <FileText size={20} />
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-sm font-medium truncate">{activePdf.name}</h3>
