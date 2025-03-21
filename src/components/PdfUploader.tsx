@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { extractTextFromPdf, formatFileSize, type PdfInfo } from '@/utils/pdf';
 import { FileText, Upload, X } from 'lucide-react';
-import { isMedicalReport } from '@/utils/api';
+import { isMedical } from '@/utils/api';
 
 interface PdfUploaderProps {
   onPdfProcessed: (pdfInfo: PdfInfo) => void;
@@ -18,7 +18,7 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [isMedicalReport, setIsMedicalReport] = useState(false);
+  const [isMedicalDoc, setIsMedicalDoc] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (file: File) => {
@@ -42,12 +42,12 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({
       const pdfInfo = await extractTextFromPdf(file);
       
       // Check if PDF might be a medical report using the utility function
-      const isMedicalDoc = isMedicalReport(pdfInfo.text);
+      const medical = isMedical.isMedicalReport(pdfInfo.text);
       
-      setIsMedicalReport(isMedicalDoc);
+      setIsMedicalDoc(medical);
       onPdfProcessed(pdfInfo);
       
-      if (isMedicalDoc) {
+      if (medical) {
         toast.success(`Medical report "${file.name}" processed successfully. Analysis will begin automatically.`);
       } else {
         toast.success(`"${file.name}" processed successfully`);
@@ -83,7 +83,7 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({
   };
 
   const handleClearPdf = () => {
-    setIsMedicalReport(false);
+    setIsMedicalDoc(false);
     onPdfProcessed({
       id: '',
       name: '',
@@ -114,7 +114,7 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({
                 <h3 className="text-sm font-medium truncate">{activePdf.name}</h3>
                 <p className="text-xs text-muted-foreground">
                   {formatFileSize(activePdf.size)} • {activePdf.numPages} {activePdf.numPages === 1 ? 'page' : 'pages'}
-                  {isMedicalReport && <span className="ml-1 text-emerald-500">• Medical Report</span>}
+                  {isMedicalDoc && <span className="ml-1 text-emerald-500">• Medical Report</span>}
                 </p>
               </div>
             </div>

@@ -1,10 +1,9 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Send } from 'lucide-react';
 import Message, { TypingIndicator } from './Message';
-import { Message as MessageType, sendChatMessage, sendChatMessageWithPdf, isMedicalReport } from '@/utils/api';
+import { Message as MessageType, sendChatMessage, sendChatMessageWithPdf, isMedical } from '@/utils/api';
 import { PdfInfo } from '@/utils/pdf';
 import { cn } from '@/lib/utils';
 
@@ -17,7 +16,7 @@ const Chat: React.FC<ChatProps> = ({ apiKey, activePdf }) => {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isMedical, setIsMedical] = useState(false);
+  const [isMedicalDoc, setIsMedicalDoc] = useState(false);
   const [autoAnalysisPerformed, setAutoAnalysisPerformed] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -25,20 +24,20 @@ const Chat: React.FC<ChatProps> = ({ apiKey, activePdf }) => {
   // Determine if PDF is a medical report whenever activePdf changes
   useEffect(() => {
     if (activePdf && activePdf.text) {
-      const medical = isMedicalReport(activePdf.text);
-      setIsMedical(medical);
+      const medical = isMedical.isMedicalReport(activePdf.text);
+      setIsMedicalDoc(medical);
       
       // Reset auto-analysis flag when a new PDF is loaded
       setAutoAnalysisPerformed(false);
     } else {
-      setIsMedical(false);
+      setIsMedicalDoc(false);
       setAutoAnalysisPerformed(false);
     }
   }, [activePdf]);
 
   // Auto-analyze medical reports
   useEffect(() => {
-    if (isMedical && activePdf && activePdf.text && !autoAnalysisPerformed && messages.length === 0) {
+    if (isMedicalDoc && activePdf && activePdf.text && !autoAnalysisPerformed && messages.length === 0) {
       const performAutoAnalysis = async () => {
         setIsLoading(true);
         setAutoAnalysisPerformed(true);
@@ -67,7 +66,7 @@ const Chat: React.FC<ChatProps> = ({ apiKey, activePdf }) => {
       
       performAutoAnalysis();
     }
-  }, [isMedical, activePdf, autoAnalysisPerformed, messages.length, apiKey]);
+  }, [isMedicalDoc, activePdf, autoAnalysisPerformed, messages.length, apiKey]);
 
   // Scroll to bottom whenever messages change
   useEffect(() => {
@@ -131,7 +130,7 @@ const Chat: React.FC<ChatProps> = ({ apiKey, activePdf }) => {
         <div className="w-8 h-8 rounded-full bg-primary animate-pulse-subtle" />
       </div>
       <h3 className="text-xl font-medium mb-2">Ask me anything</h3>
-      {isMedical ? (
+      {isMedicalDoc ? (
         <>
           <p className="text-emerald-600 font-medium mb-2">
             🩺 Medical Report Analysis Activated 🩺
@@ -192,7 +191,7 @@ const Chat: React.FC<ChatProps> = ({ apiKey, activePdf }) => {
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={isMedical ? "Ask about your blood test results..." : "Type your message..."}
+            placeholder={isMedicalDoc ? "Ask about your blood test results..." : "Type your message..."}
             className="flex-1"
             disabled={isLoading}
           />
